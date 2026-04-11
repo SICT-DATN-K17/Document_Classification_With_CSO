@@ -7,7 +7,7 @@ def save_embeddings(X, y, save_dir):
     np.save(f"{save_dir}/X.npy", X)
     np.save(f"{save_dir}/y.npy", y)
 
-    print("✅ Saved embeddings:")
+    print("Saved embeddings:")
     print(f"   X: {X.shape}")
     print(f"   y: {y.shape}")
 
@@ -22,7 +22,7 @@ def load_embeddings(save_dir):
     X = np.load(X_path)
     y = np.load(y_path)
 
-    print("✅ Loaded cached embeddings:")
+    print("Loaded cached embeddings:")
     print(f"   X: {X.shape}")
     print(f"   y: {y.shape}")
 
@@ -42,7 +42,7 @@ def get_or_create_embeddings(
     if X is not None:
         return X, y
 
-    print("⚡ Creating embeddings... (first time only)")
+    print("Creating embeddings... (first time only)")
     X = embed_fn(texts, tokenizer, model)
     y = np.array(labels)
 

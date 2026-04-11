@@ -21,7 +21,7 @@ def get_or_create_split(
 
     # Nếu đã có → load
     if all(os.path.exists(p) for p in paths.values()):
-        print("✅ Loaded cached split")
+        print("Loaded cached split")
 
         return (
             np.load(paths["X_train"]),
@@ -31,7 +31,7 @@ def get_or_create_split(
         )
 
     # Nếu chưa có → tạo mới
-    print("⚡ Creating train/test split...")
+    print("Creating train/test split...")
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -46,7 +46,7 @@ def get_or_create_split(
     np.save(paths["y_train"], y_train)
     np.save(paths["y_test"], y_test)
 
-    print("✅ Saved split:")
+    print("Saved split:")
     print(f"Train: {X_train.shape}")
     print(f"Test : {X_test.shape}")
 

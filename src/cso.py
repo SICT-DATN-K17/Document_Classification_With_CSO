@@ -24,7 +24,7 @@ class CSO:
         self.min = min
         self.verbose = verbose
 
-        # Khởi tạo quần thể
+        # khởi tạo quần thể
         if bound:
             self.X = np.array([
                 np.random.uniform(low=b[0], high=b[1], size=P)
@@ -48,12 +48,11 @@ class CSO:
         step = u / (np.abs(v) ** (1 / beta))
         return step
 
+    # tránh lặp fitness
     def get_best(self):
-        best = self.X[0].copy()
-        for i in range(1, self.P):
-            if self._is_better(self.X[i], best):
-                best = self.X[i].copy()
-        return best
+        fitness_values = [self.fitness(x) for x in self.X]
+        best_idx = np.argmin(fitness_values) if self.min else np.argmax(fitness_values)
+        return self.X[best_idx].copy()
 
     def _is_better(self, x1, x2):
         if self.min:

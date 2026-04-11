@@ -5,13 +5,31 @@ from transformers import AutoTokenizer, AutoModel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# def load_phobert(model_dir):
+#     if os.path.exists(model_dir):
+#         tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False)
+#         model = AutoModel.from_pretrained(model_dir).to(device)
+#     else:
+#         tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=False)
+#         model = AutoModel.from_pretrained("vinai/phobert-base").to(device)
+
+#         tokenizer.save_pretrained(model_dir)
+#         model.save_pretrained(model_dir)
+
+#     model.eval()
+#     return tokenizer, model
+
 def load_phobert(model_dir):
     if os.path.exists(model_dir):
+        print("Load model từ local...")
         tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False)
         model = AutoModel.from_pretrained(model_dir).to(device)
     else:
+        print("Download model từ HuggingFace...")
         tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=False)
         model = AutoModel.from_pretrained("vinai/phobert-base").to(device)
+
+        os.makedirs(model_dir, exist_ok=True)
 
         tokenizer.save_pretrained(model_dir)
         model.save_pretrained(model_dir)
