@@ -1,9 +1,12 @@
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+# BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(r"/kaggle/working/")
+# BASE_DIR = os.path.dirname(r"/kaggle/working/models")
 
 # ===== DATA =====
-DATA_PATH = os.path.join(BASE_DIR, r"/kaggle/input/datasets/thunguyen203/train-data-ver2/data_test.csv")
+DATA_PATH = os.path.join(BASE_DIR, r"/kaggle/input/datasets/thunguyen203/optimizing-data/train.csv")
+# DATA_PATH = os.path.join(BASE_DIR, r"D:\DATN_Kaggle\data\train.csv")
 
 # ===== MODEL DIR =====
 MODEL_DIR = os.path.join(BASE_DIR, "models")

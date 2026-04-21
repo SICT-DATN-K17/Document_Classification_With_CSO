@@ -10,7 +10,7 @@ def train_svm(X_train, y_train, C=1.0):
         ("norm", Normalizer()),
         ("svm", LinearSVC(
             C=C,
-            class_weight="balanced",
+            class_weight=None,
             max_iter=20000,
             random_state=42
         ))
