@@ -1,6 +1,7 @@
 import numpy as np
 from math import gamma
 
+
 class CSO:
     def __init__(
         self,
@@ -12,7 +13,8 @@ class CSO:
         bound=None,
         Tmax=50,
         min=True,
-        verbose=False
+        verbose=False,
+        random_state=42
     ):
         self.fitness = fitness
         self.P = P
@@ -23,17 +25,26 @@ class CSO:
         self.Tmax = Tmax
         self.min = min
         self.verbose = verbose
+        self.rng = np.random.default_rng(random_state)
 
-        # khởi tạo quần thể
-        if bound:
-            self.X = np.array([
-                np.random.uniform(low=b[0], high=b[1], size=P)
-                for b in bound
-            ]).T
+        if bound is not None:
+            self.X = np.zeros((P, n), dtype=float)
+            for d, (low, high) in enumerate(bound):
+                self.X[:, d] = self.rng.uniform(low, high, size=P)
         else:
-            self.X = np.random.randn(P, n)
+            self.X = self.rng.standard_normal((P, n))
 
-        self.best = None
+        self.F = np.array([self.fitness(x) for x in self.X], dtype=float)
+
+        best_idx = self._best_index()
+        self.best = self.X[best_idx].copy()
+        self.best_fitness = float(self.F[best_idx])
+
+    def _best_index(self):
+        return int(np.argmin(self.F) if self.min else np.argmax(self.F))
+
+    def _is_better_f(self, f1, f2):
+        return f1 < f2 if self.min else f1 > f2
 
     def levy_flight(self):
         beta = self.beta
@@ -42,64 +53,59 @@ class CSO:
             / (gamma((1 + beta) / 2) * beta * 2 ** ((beta - 1) / 2))
         ) ** (1 / beta)
 
-        u = np.random.normal(0, sigma_u, size=self.n)
-        v = np.random.normal(0, 1, size=self.n)
+        u = self.rng.normal(0, sigma_u, size=self.n)
+        v = self.rng.normal(0, 1, size=self.n)
+        return u / (np.abs(v) ** (1 / beta))
 
-        step = u / (np.abs(v) ** (1 / beta))
-        return step
-
-    # tránh lặp fitness
-    def get_best(self):
-        fitness_values = [self.fitness(x) for x in self.X]
-        best_idx = np.argmin(fitness_values) if self.min else np.argmax(fitness_values)
-        return self.X[best_idx].copy()
-
-    def _is_better(self, x1, x2):
-        if self.min:
-            return self.fitness(x1) < self.fitness(x2)
-        else:
-            return self.fitness(x1) > self.fitness(x2)
-
-    def clip(self):
-        if self.bound:
-            for i in range(self.n):
-                self.X[:, i] = np.clip(
-                    self.X[:, i],
-                    self.bound[i][0],
-                    self.bound[i][1]
-                )
+    def clip_vector(self, x):
+        if self.bound is None:
+            return x
+        x = x.copy()
+        for d in range(self.n):
+            low, high = self.bound[d]
+            x[d] = np.clip(x[d], low, high)
+        return x
 
     def update_levy(self):
-        best = self.get_best()
-
         for i in range(self.P):
             step = self.levy_flight()
-            new = self.X[i] + 0.01 * step * (self.X[i] - best)
+            new = self.X[i] + 0.01 * step * (self.X[i] - self.best)
+            new = self.clip_vector(new)
+            new_f = self.fitness(new)
 
-            if self._is_better(new, self.X[i]):
+            if self._is_better_f(new_f, self.F[i]):
                 self.X[i] = new
+                self.F[i] = new_f
 
     def update_random(self):
         for i in range(self.P):
-            if np.random.rand() < self.pa:
-                j, k = np.random.randint(0, self.P, 2)
-                step = np.random.rand(self.n) * (self.X[j] - self.X[k])
-                new = self.X[i] + step
+            if self.rng.random() < self.pa:
+                j, k = self.rng.integers(0, self.P, size=2)
+                while j == k:
+                    k = self.rng.integers(0, self.P)
 
-                if self._is_better(new, self.X[i]):
+                step = self.rng.random(self.n) * (self.X[j] - self.X[k])
+                new = self.X[i] + step
+                new = self.clip_vector(new)
+                new_f = self.fitness(new)
+
+                if self._is_better_f(new_f, self.F[i]):
                     self.X[i] = new
+                    self.F[i] = new_f
+
+    def update_best(self):
+        best_idx = self._best_index()
+        self.best = self.X[best_idx].copy()
+        self.best_fitness = float(self.F[best_idx])
 
     def execute(self):
         for t in range(self.Tmax):
             self.update_levy()
-            self.clip()
             self.update_random()
-            self.clip()
-
-            self.best = self.get_best()
+            self.update_best()
 
             if self.verbose:
-                print(f"Iter {t} | Best fitness: {self.fitness(self.best):.4f}")
+                print(f"Iter {t} | Best fitness: {self.best_fitness:.6f}")
 
         print("\nBest solution:", self.best)
-        print("Best fitness:", self.fitness(self.best))
+        print("Best fitness:", self.best_fitness)
