@@ -1,3 +1,7 @@
 models/*
 notebook/*
 data/*
+FE/node_modules/*
+BE/python_env/*
+BE/__pycache__/*
+BE/app.db
